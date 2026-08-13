@@ -25,11 +25,14 @@ services:
     restart: unless-stopped
 
   rsshub:
-    image: diygod/rsshub:2025-04-13
+    image: diygod/rsshub:latest
     environment:
       NODE_ENV: production
       CACHE_TYPE: redis
       REDIS_URL: redis://redis:6379/1
+      # Zhihu blocks anonymous requests since 2024-07; supply a logged-in
+      # z_c0 cookie via ZHIHU_COOKIES in .env to fetch Zhihu sources.
+      ZHIHU_COOKIES: ${ZHIHU_COOKIES:-}
     depends_on:
       redis:
         condition: service_healthy

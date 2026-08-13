@@ -38,6 +38,7 @@ async def test_resolve_zhihu_people(zhihu):
     assert source.platform == "zhihu"
     assert source.platform_uid == "someone"
     assert source.adapter_config["is_column"] is False
+    assert source.adapter_config["rsshub_route"] == "/zhihu/people/activities/someone"
 
 
 @pytest.mark.asyncio

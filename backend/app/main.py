@@ -3,7 +3,7 @@ import json
 import uuid
 
 import redis.asyncio as aioredis
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from slowapi import _rate_limit_exceeded_handler
@@ -65,6 +65,17 @@ app.include_router(ws_router)
 )
 async def api_compat(path: str, request: Request):
     query = str(request.url.query)
+    # Already under the versioned namespace: the real route above should have
+    # fully matched. If we're here, it only lacks the trailing slash FastAPI
+    # would have redirected to — otherwise 404. Never re-prefix /v1 or the
+    # redirect loops (/api/v1/v1/...) and the client shows "加载失败".
+    if path == "v1" or path.startswith("v1/"):
+        if request.url.path.endswith("/"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        target = f"/api/{path}/"
+        if query:
+            target = f"{target}?{query}"
+        return RedirectResponse(url=target, status_code=307)
     target = f"/api/v1/{path}"
     if query:
         target = f"{target}?{query}"

@@ -88,6 +88,7 @@ services:
 
   frontend:
     build: ./frontend
+    user: root
     ports:
       - "8100:80"
     logging: *default-logging

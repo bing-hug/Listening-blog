@@ -89,6 +89,8 @@ services:
   frontend:
     build: ./frontend
     user: root
+    tmpfs:
+      - /run
     ports:
       - "8100:80"
     logging: *default-logging

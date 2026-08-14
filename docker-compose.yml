@@ -87,7 +87,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "80:80"
+      - "8100:8100"
     logging: *default-logging
     depends_on:
       backend:

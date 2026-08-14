@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    user: root
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-juflow}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-juflow_dev}

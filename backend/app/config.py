@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = "noreply@juflow.app"
     cors_origins: str = "http://localhost:5173,http://localhost:80"
+    # NapCat (QQ 通知) — OneBot v11 HTTP 服务地址与 access_token
+    napcat_base_url: str = "http://localhost:3000"
+    napcat_access_token: str = ""
 
     model_config = {"env_file": ".env"}
 

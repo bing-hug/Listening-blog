@@ -42,6 +42,7 @@ Folo 等 RSS 阅读器对国内个人博主支持不足。很多平台没有 RSS
 - **Web Push**：浏览器系统通知
 - **微信**：企业微信群机器人 Webhook
 - **Telegram**：Bot API
+- **QQ**：NapCat 机器人私聊推送
 - **邮件**：即时 / 每小时 / 每日摘要
 - **免打扰**：可配置静默时段，重要博主可豁免
 - **Cookie 过期提醒**：平台凭证失效时自动通知用户更新
@@ -115,6 +116,7 @@ docker compose up -d
 - 选择默认通知渠道
 - 微信：填入企业微信群机器人 Webhook URL
 - Telegram：填入 Bot Token 和 Chat ID
+- QQ（NapCat）：NapCatQQ 启动并登录机器人 QQ 后，在 WebUI「网络配置」添加一个 OneBot v11 **HTTP 服务器**（默认端口 3000，可设置 access_token）；然后在服务器 `.env` 配置 `NAPCAT_BASE_URL` 和 `NAPCAT_ACCESS_TOKEN`（docker 部署改 .env 后 `docker compose restart backend celery-worker`）。最后在设置页填入接收推送的 QQ 号并勾选「QQ (NapCat)」渠道
 - 邮件：填入接收邮箱
 - 配置免打扰时段
 

@@ -24,6 +24,7 @@ class NotificationSettingsUpdate(BaseModel):
     wechat_webhook: Optional[str] = None
     telegram_bot_token: Optional[str] = None
     telegram_chat_id: Optional[str] = None
+    napcat_qq_id: Optional[str] = None
 
 @router.get("/push/vapid-key")
 async def get_vapid_key():
@@ -55,6 +56,7 @@ async def get_notification_settings(user: User = Depends(get_current_user)):
         "wechat_webhook": s.get("wechat_webhook", ""),
         "telegram_bot_token": s.get("telegram_bot_token", ""),
         "telegram_chat_id": s.get("telegram_chat_id", ""),
+        "napcat_qq_id": s.get("napcat_qq_id", ""),
     }
 
 @router.put("/settings")

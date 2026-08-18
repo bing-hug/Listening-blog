@@ -12,6 +12,7 @@ interface NotificationSettingsData {
   telegram_bot_token: string
   telegram_chat_id: string
   email_address: string
+  napcat_qq_id: string
 }
 
 const settings = ref<NotificationSettingsData>({
@@ -24,6 +25,7 @@ const settings = ref<NotificationSettingsData>({
   telegram_bot_token: '',
   telegram_chat_id: '',
   email_address: '',
+  napcat_qq_id: '',
 })
 
 const saving = ref(false)
@@ -34,6 +36,7 @@ const channels = [
   { key: 'wechat', label: '微信' },
   { key: 'telegram', label: 'Telegram' },
   { key: 'email', label: '邮件' },
+  { key: 'napcat', label: 'QQ (NapCat)' },
 ]
 
 function toggleChannel(key: string) {
@@ -143,6 +146,15 @@ async function save() {
       </div>
     </div>
 
+    <div class="card">
+      <h3>QQ 通知（NapCat）</h3>
+      <div class="field">
+        <label class="label-text">QQ 号</label>
+        <input type="text" v-model="settings.napcat_qq_id" placeholder="接收推送的 QQ 号" class="text-input" />
+      </div>
+      <p class="hint">NapCat 服务端地址和 access_token 在服务器 .env 中配置（NAPCAT_BASE_URL / NAPCAT_ACCESS_TOKEN），启用后新文章会私聊推送至此 QQ。</p>
+    </div>
+
     <div class="save-row">
       <button class="save-btn" @click="save" :disabled="saving">
         {{ saving ? '保存中...' : '保存设置' }}
@@ -183,4 +195,5 @@ h3 { color: var(--text-primary); font-size: 14px; margin: 0 0 16px; }
 }
 .save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .save-msg { color: var(--success); font-size: 13px; }
+.hint { color: var(--text-secondary); font-size: 12px; margin: 8px 0 0; line-height: 1.5; }
 </style>

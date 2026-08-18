@@ -41,6 +41,7 @@ const CHANNELS = [
   { key: 'wechat', label: '微信' },
   { key: 'telegram', label: 'Telegram' },
   { key: 'email', label: '邮件' },
+  { key: 'napcat', label: 'QQ (NapCat)' },
 ]
 
 onMounted(async () => {

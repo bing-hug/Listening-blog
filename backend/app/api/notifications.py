@@ -25,6 +25,8 @@ class NotificationSettingsUpdate(BaseModel):
     telegram_bot_token: Optional[str] = None
     telegram_chat_id: Optional[str] = None
     napcat_qq_id: Optional[str] = None
+    weclawbot_bot_id: Optional[str] = None
+    weclawbot_api_token: Optional[str] = None
 
 @router.get("/push/vapid-key")
 async def get_vapid_key():
@@ -57,11 +59,17 @@ async def get_notification_settings(user: User = Depends(get_current_user)):
         "telegram_bot_token": s.get("telegram_bot_token", ""),
         "telegram_chat_id": s.get("telegram_chat_id", ""),
         "napcat_qq_id": s.get("napcat_qq_id", ""),
+        "weclawbot_bot_id": s.get("weclawbot_bot_id", ""),
+        "weclawbot_api_token": s.get("weclawbot_api_token", ""),
     }
 
 @router.put("/settings")
 async def update_notification_settings(data: NotificationSettingsUpdate, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    s = user.settings or {}
+    # Copy the dict instead of mutating user.settings in place: JSONB columns are
+    # not change-tracked, and assigning the same object back compares equal, so
+    # SQLAlchemy would emit no UPDATE and every save after the first would be a
+    # silent no-op (existing users' settings could never be updated).
+    s = dict(user.settings or {})
     updates = data.model_dump(exclude_none=True)
     for key, value in updates.items():
         s[key] = value

@@ -11,3 +11,4 @@ frontend/dist/
 .mypy_cache/
 .pytest_cache/
 .claude/
+.idea

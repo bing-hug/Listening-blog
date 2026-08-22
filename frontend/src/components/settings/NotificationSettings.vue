@@ -13,6 +13,8 @@ interface NotificationSettingsData {
   telegram_chat_id: string
   email_address: string
   napcat_qq_id: string
+  weclawbot_bot_id: string
+  weclawbot_api_token: string
 }
 
 const settings = ref<NotificationSettingsData>({
@@ -26,6 +28,8 @@ const settings = ref<NotificationSettingsData>({
   telegram_chat_id: '',
   email_address: '',
   napcat_qq_id: '',
+  weclawbot_bot_id: '',
+  weclawbot_api_token: '',
 })
 
 const saving = ref(false)
@@ -37,6 +41,7 @@ const channels = [
   { key: 'telegram', label: 'Telegram' },
   { key: 'email', label: '邮件' },
   { key: 'napcat', label: 'QQ (NapCat)' },
+  { key: 'weclawbot', label: '微信 (WeClawBot)' },
 ]
 
 function toggleChannel(key: string) {
@@ -153,6 +158,19 @@ async function save() {
         <input type="text" v-model="settings.napcat_qq_id" placeholder="接收推送的 QQ 号" class="text-input" />
       </div>
       <p class="hint">NapCat 服务端地址和 access_token 在服务器 .env 中配置（NAPCAT_BASE_URL / NAPCAT_ACCESS_TOKEN），启用后新文章会私聊推送至此 QQ。</p>
+    </div>
+
+    <div class="card">
+      <h3>微信通知（WeClawBot）</h3>
+      <div class="field">
+        <label class="label-text">Bot ID</label>
+        <input type="text" v-model="settings.weclawbot_bot_id" placeholder="如 bot_xxxx（WeClawBot-API /bots 命令可查）" class="text-input" />
+      </div>
+      <div class="field">
+        <label class="label-text">API Token</label>
+        <input type="password" v-model="settings.weclawbot_api_token" placeholder="发送消息所需的 api_token" class="text-input" />
+      </div>
+      <p class="hint">WeClawBot-API 服务端地址在服务器 .env 中配置（WECLAWBOT_BASE_URL，默认 http://localhost:26322）。部署后扫码登录微信 ClawBot 机器人，先给机器人发一条消息激活，再填入上述信息并勾选「微信 (WeClawBot)」渠道。</p>
     </div>
 
     <div class="save-row">

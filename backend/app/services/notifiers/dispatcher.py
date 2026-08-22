@@ -3,6 +3,7 @@ from app.services.notifiers.wechat import WechatNotifier
 from app.services.notifiers.telegram import TelegramNotifier
 from app.services.notifiers.email_notifier import EmailNotifier
 from app.services.notifiers.napcat import NapCatNotifier
+from app.services.notifiers.weclawbot import WeclawBotNotifier
 
 _notifiers = {
     "web_push": WebPushNotifier(),
@@ -10,6 +11,7 @@ _notifiers = {
     "telegram": TelegramNotifier(),
     "email": EmailNotifier(),
     "napcat": NapCatNotifier(),
+    "weclawbot": WeclawBotNotifier(),
 }
 
 class NotificationDispatcher:

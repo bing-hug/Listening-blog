@@ -117,6 +117,7 @@ docker compose up -d
 - 微信：填入企业微信群机器人 Webhook URL
 - Telegram：填入 Bot Token 和 Chat ID
 - QQ（NapCat）：NapCatQQ 启动并登录机器人 QQ 后，在 WebUI「网络配置」添加一个 OneBot v11 **HTTP 服务器**（默认端口 3000，可设置 access_token）；然后在服务器 `.env` 配置 `NAPCAT_BASE_URL` 和 `NAPCAT_ACCESS_TOKEN`（docker 部署改 .env 后 `docker compose restart backend celery-worker`）。最后在设置页填入接收推送的 QQ 号并勾选「QQ (NapCat)」渠道
+- 微信（WeClawBot）：部署 [WeClawBot-API](https://github.com/Cp0204/WeClawBot-API)（Docker 一键启动，默认端口 26322），进入容器执行 `bot` 扫码登录微信 ClawBot 机器人，并先给机器人发一条消息激活；在服务器 `.env` 配置 `WECLAWBOT_BASE_URL`，然后在设置页填入 `bot_id` 和 `api_token`（容器内 `/bots` 命令可查）并勾选「微信 (WeClawBot)」渠道
 - 邮件：填入接收邮箱
 - 配置免打扰时段
 

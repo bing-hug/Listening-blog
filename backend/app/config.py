@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     # NapCat (QQ 通知) — OneBot v11 HTTP 服务地址与 access_token
     napcat_base_url: str = "http://localhost:3000"
     napcat_access_token: str = ""
+    # WeClawBot-API (个人微信通知) — HTTP 服务地址，bot_id / api_token 在用户设置中配置
+    weclawbot_base_url: str = "http://localhost:26322"
 
     model_config = {"env_file": ".env"}
 

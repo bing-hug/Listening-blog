@@ -24,7 +24,11 @@ from app.api.plugins import router as plugins_router
 from app.api.health import router as health_router
 from app.api.onboarding import router as onboarding_router
 from app.config import settings
+from app.logging_config import setup_logging
 from app.services.notification_service import notify_manager
+
+# Configure the unified file logging (logs/error.log, logs/app.log).
+setup_logging()
 
 app = FastAPI(title="JuFlow", version="1.0.0")
 

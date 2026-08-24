@@ -60,6 +60,8 @@ services:
         condition: service_started
     volumes:
       - plugins:/app/plugins
+      # Persist the unified log files (logs/error.log, logs/app.log) to the host.
+      - ./logs:/app/logs
     restart: unless-stopped
 
   celery-worker:
@@ -73,6 +75,9 @@ services:
         condition: service_healthy
     volumes:
       - plugins:/app/plugins
+      # Same host log dir as the backend service so all error logs are unified
+      # in one file even though the worker is a separate container.
+      - ./logs:/app/logs
     restart: unless-stopped
 
   celery-beat:

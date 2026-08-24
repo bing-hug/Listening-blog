@@ -12,3 +12,4 @@ frontend/dist/
 .pytest_cache/
 .claude/
 .idea
+logs/

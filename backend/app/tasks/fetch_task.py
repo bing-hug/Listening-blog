@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import time
 import uuid
 from datetime import datetime, timezone
@@ -14,16 +15,20 @@ from app.services.article_service import store_articles
 from app.tasks.celery_app import celery_app
 from app.tasks.db import session_factory as _session_factory
 
+logger = logging.getLogger(__name__)
+
 
 async def _fetch_source(source_id: str):
     async with _session_factory() as db:
         result = await db.execute(select(Source).where(Source.id == uuid.UUID(source_id)))
         source = result.scalar_one_or_none()
         if not source:
+            logger.warning("Fetch skipped: source %s not found", source_id)
             return
 
         adapters = registry.get_adapters_by_platform(source.platform)
         if not adapters:
+            logger.warning("Fetch skipped: no adapters for platform %s", source.platform)
             return
 
         from app.services.cookie_service import get_decrypted_cookie
@@ -64,7 +69,13 @@ async def _fetch_source(source_id: str):
                 break
             except Exception as e:
                 error_msg = str(e)
-                print(f"[fetch] {adapter.adapter_type} failed for {source.platform}/{source.platform_uid}: {e}")
+                logger.error(
+                    "Fetch failed via adapter %s for %s/%s: %s",
+                    adapter.adapter_type,
+                    source.platform,
+                    source.platform_uid,
+                    e,
+                )
                 continue
 
         elapsed = time.monotonic() - start_time
@@ -87,10 +98,17 @@ async def _fetch_source(source_id: str):
         await db.commit()
 
         if new_articles:
-            print(f"[fetch] {source_display}: {len(new_articles)} new articles")
+            logger.info("[fetch] %s: %d new articles", source_display, len(new_articles))
             for article in new_articles:
                 from app.tasks.notify_task import notify_new_article
                 notify_new_article.delay(str(article.id), str(source_pk))
+        else:
+            logger.info(
+                "[fetch] %s: 0 new articles (%d entries, success=%s)",
+                source_display,
+                len(items) if items is not None else 0,
+                items is not None,
+            )
 
 
 @celery_app.task(name="app.tasks.fetch_task.fetch_source")

@@ -5,6 +5,11 @@ from celery.schedules import crontab
 from celery.signals import worker_ready
 
 from app.config import settings
+from app.logging_config import setup_logging
+
+# Configure the unified file logging (logs/error.log, logs/app.log) as soon as
+# the worker imports the app, so fetch/notify task logs land on disk.
+setup_logging()
 
 celery_app = Celery("juflow", broker=settings.redis_url, backend=settings.redis_url)
 

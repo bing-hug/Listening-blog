@@ -11,4 +11,5 @@ __pycache__/
 .gitignore
 tests/
 docs/
+logs/
 *.md

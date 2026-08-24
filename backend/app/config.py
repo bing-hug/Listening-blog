@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     napcat_access_token: str = ""
     # WeClawBot-API (个人微信通知) — HTTP 服务地址，bot_id / api_token 在用户设置中配置
     weclawbot_base_url: str = "http://localhost:26322"
+    # Logging — 统一错误日志写入 {log_dir}/error.log，全量日志 {log_dir}/app.log
+    log_dir: str = "logs"
+    log_level: str = "INFO"
 
     model_config = {"env_file": ".env"}
 

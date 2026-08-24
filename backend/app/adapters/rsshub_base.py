@@ -1,3 +1,4 @@
+import logging
 import re
 from datetime import datetime, timezone
 
@@ -6,6 +7,8 @@ import httpx
 
 from app.adapters.base import BaseAdapter, SourceInfo, ArticleItem
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class RsshubBaseAdapter(BaseAdapter):
@@ -48,9 +51,20 @@ class RsshubBaseAdapter(BaseAdapter):
             "rsshub_route", self.rsshub_route_template.format(uid=source.platform_uid)
         )
         rsshub_url = f"{settings.rsshub_url}{route}"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(rsshub_url, timeout=30)
-            resp.raise_for_status()
+        logger.info("Fetching %s feed from RSSHub: %s", source.platform, rsshub_url)
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(rsshub_url, timeout=30)
+                resp.raise_for_status()
+        except Exception as e:
+            logger.error(
+                "RSSHub fetch failed for %s (route %s): %s",
+                source.platform,
+                rsshub_url,
+                e,
+                exc_info=True,
+            )
+            raise
         feed = feedparser.parse(resp.text)
         articles = []
         for entry in feed.entries:
@@ -64,4 +78,5 @@ class RsshubBaseAdapter(BaseAdapter):
                 content=entry.get("content", [{}])[0].get("value") if entry.get("content") else None,
                 published_at=published,
             ))
+        logger.info("RSSHub fetch ok for %s: %d entries", source.platform, len(articles))
         return articles

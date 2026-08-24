@@ -1,0 +1,21 @@
+# Linux 服务器专用 override:把日志从命名卷改为宿主机的 ./logs 目录,
+# 这样服务器上直接能看 logs/app.log 和 logs/error.log。
+#
+# 部署(一次性权限 + 每次启动):
+#   sudo mkdir -p logs
+#   sudo chown -R 999:999 logs        # 999 = 容器内非 root 用户 juflow 的 uid
+#   docker compose -f docker-compose.yml -f docker-compose.linux.yml up -d --build
+#
+# 说明:bind mount 会保留宿主目录属主,所以必须把宿主 logs/ chown 成 uid 999,
+# 否则容器内 juflow(uid 999)写不进去(日志会回退成只打控制台)。
+
+services:
+  backend:
+    volumes:
+      - plugins:/app/plugins
+      - ./logs:/app/logs
+
+  celery-worker:
+    volumes:
+      - plugins:/app/plugins
+      - ./logs:/app/logs

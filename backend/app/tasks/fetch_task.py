@@ -41,6 +41,11 @@ async def _fetch_source(source_id: str):
         if sub_user_id:
             cookie = await get_decrypted_cookie(db, sub_user_id, source.platform)
 
+        logger.info(
+            "[步骤1] 拉取开始: source=%s/%s (%s)",
+            source.platform, source.platform_uid, source.display_name,
+        )
+
         source_info = SourceInfo(
             platform=source.platform,
             platform_uid=source.platform_uid,
@@ -83,6 +88,10 @@ async def _fetch_source(source_id: str):
         new_articles = []
         if items is not None:
             new_articles = await store_articles(db, source.id, items)
+            logger.info(
+                "[步骤4] 存储文章: 共拉取 %d 条, 新增 %d 篇, 跳过重复 %d 篇 (source=%s)",
+                len(items), len(new_articles), len(items) - len(new_articles), source_display,
+            )
             source.last_fetched_at = datetime.now(timezone.utc)
 
         # Write health log
@@ -98,13 +107,13 @@ async def _fetch_source(source_id: str):
         await db.commit()
 
         if new_articles:
-            logger.info("[fetch] %s: %d new articles", source_display, len(new_articles))
+            logger.info("[步骤4] 有 %d 篇新文章, 进入通知流程 (source=%s)", len(new_articles), source_display)
             for article in new_articles:
                 from app.tasks.notify_task import notify_new_article
                 notify_new_article.delay(str(article.id), str(source_pk))
         else:
             logger.info(
-                "[fetch] %s: 0 new articles (%d entries, success=%s)",
+                "[步骤4] 无新文章: %s (RSSHub 返回 %d 条, 均为重复或拉取失败, success=%s)",
                 source_display,
                 len(items) if items is not None else 0,
                 items is not None,

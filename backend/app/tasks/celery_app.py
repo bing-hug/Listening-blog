@@ -43,6 +43,9 @@ celery_app.conf.update(
     result_serializer="json",
     timezone="Asia/Shanghai",
     enable_utc=True,
+    # Without this, Celery hijacks the root logger and strips the file handlers
+    # that setup_logging() added, so error.log/app.log stay empty in the worker.
+    worker_hijack_root_logger=False,
     beat_schedule={
         "schedule-due-sources": {
             "task": "app.tasks.scheduler_task.schedule_due_sources",

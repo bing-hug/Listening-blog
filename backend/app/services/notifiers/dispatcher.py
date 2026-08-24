@@ -23,16 +23,17 @@ class NotificationDispatcher:
         for ch in channels:
             notifier = _notifiers.get(ch)
             if notifier:
+                logger.info("[步骤6] 渠道分发: channel=%s (article=%s)", ch, getattr(article, "id", None))
                 try:
                     ok = await notifier.send(user_settings, article, source)
                     if not ok:
                         logger.error(
-                            "Notifier %s reported failure (article=%s source=%s)",
+                            "[步骤6] 渠道 %s 发送失败 (article=%s source=%s)",
                             ch, getattr(article, "id", None), getattr(source, "platform", "?"),
                         )
                 except Exception as e:
                     logger.error(
-                        "Notifier %s raised for article %s source %s: %s",
+                        "[步骤6] 渠道 %s 发送异常 (article=%s source=%s): %s",
                         ch, getattr(article, "id", None), getattr(source, "platform", "?"), e,
                         exc_info=True,
                     )

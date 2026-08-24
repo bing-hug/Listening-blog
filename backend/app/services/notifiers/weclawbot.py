@@ -19,9 +19,14 @@ class WeclawBotNotifier(BaseNotifier):
     async def send(self, user_settings: dict, article, source) -> bool:
         bot_id = user_settings.get("weclawbot_bot_id")
         api_token = user_settings.get("weclawbot_api_token")
+        logger.info(
+            "[步骤7] WeClawBot 发送开始: article=%s 配置(base_url=%s bot_id=%s token=%s)",
+            getattr(article, "id", None),
+            bool(settings.weclawbot_base_url), bool(bot_id), bool(api_token),
+        )
         if not settings.weclawbot_base_url or not bot_id or not api_token:
             logger.warning(
-                "WeClawBot skipped: config incomplete (base_url=%s bot_id=%s api_token=%s)",
+                "[步骤7] WeClawBot 配置不完整, 跳过 (base_url=%s bot_id=%s api_token=%s)",
                 bool(settings.weclawbot_base_url), bool(bot_id), bool(api_token),
             )
             return False
@@ -30,6 +35,7 @@ class WeclawBotNotifier(BaseNotifier):
             text += f"\n\n{article.summary[:100]}"
         headers = {"Authorization": f"Bearer {api_token}"}
         url = f"{settings.weclawbot_base_url.rstrip('/')}/bots/{bot_id}/messages"
+        logger.info("[步骤7] WeClawBot POST %s", url)
         try:
             async with httpx.AsyncClient() as client:
                 resp = await client.post(
@@ -39,13 +45,16 @@ class WeclawBotNotifier(BaseNotifier):
                     timeout=10,
                 )
         except Exception as e:
-            logger.error("WeClawBot request failed (bot_id=%s article=%s): %s", bot_id, getattr(article, "id", None), e, exc_info=True)
+            logger.error("[步骤7] WeClawBot 请求异常 (bot_id=%s article=%s): %s", bot_id, getattr(article, "id", None), e, exc_info=True)
             return False
         if resp.status_code != 200:
             logger.error(
-                "WeClawBot responded %s for article %s (bot_id=%s): %s",
-                resp.status_code, getattr(article, "id", None), bot_id, resp.text[:200],
+                "[步骤7] WeClawBot 响应 %s (bot_id=%s article=%s): %s",
+                resp.status_code, bot_id, getattr(article, "id", None), resp.text[:200],
             )
             return False
-        logger.info("WeClawBot message sent (bot_id=%s article=%s)", bot_id, getattr(article, "id", None))
+        logger.info(
+            "[步骤7] WeClawBot 发送成功: bot_id=%s article=%s (响应 status=%s body=%s)",
+            bot_id, getattr(article, "id", None), resp.status_code, resp.text[:200],
+        )
         return True

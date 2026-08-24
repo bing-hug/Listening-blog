@@ -43,8 +43,13 @@ async def _notify(article_id: str, source_id: str):
             select(Subscription).where(Subscription.source_id == source.id, Subscription.notify_enabled == True)  # noqa
         )).scalars().all()
 
+        logger.info(
+            "[步骤5] 通知任务开始: article=%s (%s) source=%s, 订阅用户 %d 人",
+            article.id, (article.title or "")[:50], source.display_name, len(subs),
+        )
+
         if not subs:
-            logger.info("Notify: no subscribers for article %s (%s)", article.id, source.display_name)
+            logger.info("[步骤5] 无订阅用户, 跳过通知: article=%s (%s)", article.id, source.display_name)
 
         r = redis_lib.Redis.from_url(settings.redis_url)
         for sub in subs:
@@ -62,7 +67,7 @@ async def _notify(article_id: str, source_id: str):
                 channels = sub.notify_channels or user_settings.get("notify_defaults", ["web"])
 
                 if _in_dnd(user_settings) and not sub.dnd_exempt:
-                    logger.info("Notify: DND active, deferring for user %s (channels=%s)", user.id, channels)
+                    logger.info("[步骤6] 免打扰时段, 延迟投递: article=%s user=%s channels=%s", article.id, user.id, channels)
                     r.rpush(f"juflow:dnd_pending:{user.id}", json.dumps({"article_id": article_id, "source_id": source_id, "channels": channels}, default=str))
                     continue
 
@@ -71,7 +76,7 @@ async def _notify(article_id: str, source_id: str):
                     r.rpush(f"juflow:email_digest:{user.id}", json.dumps({"article_id": article_id, "source_id": source_id}))
                     channels = [c for c in channels if c != "email"]
 
-                logger.info("Notify: dispatching article %s to user %s via channels %s", article.id, user.id, channels)
+                logger.info("[步骤6] 分发通知: article=%s user=%s channels=%s", article.id, user.id, channels)
                 await dispatcher.dispatch(user_settings, channels, article, source)
 
                 # WebSocket push always

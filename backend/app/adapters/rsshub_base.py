@@ -51,14 +51,15 @@ class RsshubBaseAdapter(BaseAdapter):
             "rsshub_route", self.rsshub_route_template.format(uid=source.platform_uid)
         )
         rsshub_url = f"{settings.rsshub_url}{route}"
-        logger.info("Fetching %s feed from RSSHub: %s", source.platform, rsshub_url)
+        logger.info("[步骤2] 拉取 %s: 请求 RSSHub %s", source.platform, rsshub_url)
         try:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(rsshub_url, timeout=30)
+                logger.info("[步骤2] RSSHub 已响应: status=%s (%d 字节)", resp.status_code, len(resp.text))
                 resp.raise_for_status()
         except Exception as e:
             logger.error(
-                "RSSHub fetch failed for %s (route %s): %s",
+                "[步骤2] RSSHub 请求失败 %s (route %s): %s",
                 source.platform,
                 rsshub_url,
                 e,
@@ -66,6 +67,7 @@ class RsshubBaseAdapter(BaseAdapter):
             )
             raise
         feed = feedparser.parse(resp.text)
+        logger.info("[步骤3] 解析 feed: RSSHub 返回 %d 条 entry", len(feed.entries))
         articles = []
         for entry in feed.entries:
             published = None
@@ -78,5 +80,5 @@ class RsshubBaseAdapter(BaseAdapter):
                 content=entry.get("content", [{}])[0].get("value") if entry.get("content") else None,
                 published_at=published,
             ))
-        logger.info("RSSHub fetch ok for %s: %d entries", source.platform, len(articles))
+        logger.info("[步骤3] 解析完成: %s 共 %d 条文章", source.platform, len(articles))
         return articles

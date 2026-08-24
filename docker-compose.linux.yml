@@ -6,16 +6,24 @@
 #   sudo chown -R 999:999 logs        # 999 = 容器内非 root 用户 juflow 的 uid
 #   docker compose -f docker-compose.yml -f docker-compose.linux.yml up -d --build
 #
-# 说明:bind mount 会保留宿主目录属主,所以必须把宿主 logs/ chown 成 uid 999,
-# 否则容器内 juflow(uid 999)写不进去(日志会回退成只打控制台)。
+# 说明:
+#   - bind mount 会保留宿主目录属主,所以必须把宿主 logs/ chown 成 uid 999,
+#     否则容器内 juflow(uid 999)写不进去(日志会回退成只打控制台)。
+#   - host.docker.internal 是 Docker Desktop(Windows/Mac)专用域名,
+#     Linux 上必须用 extra_hosts 的 host-gateway 把它映射到宿主机网关,
+#     否则 weclawbot 通知会 httpx.ConnectError(All connection attempts failed)。
 
 services:
   backend:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - plugins:/app/plugins
       - ./logs:/app/logs
 
   celery-worker:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - plugins:/app/plugins
       - ./logs:/app/logs

@@ -35,10 +35,13 @@ COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY . .
 
-# plugins directory writable by juflow user (bind mount overlay inherits this)
+# plugins/logs directories writable by juflow user. A named volume mounted at
+# these paths is initialized with the image's directory ownership, so the
+# non-root user can write without the bind-mount permission problem.
 RUN sed -i 's/\r$//' /app/entrypoint.sh \
     && chmod +x /app/entrypoint.sh \
     && mkdir -p /app/plugins/adapters \
+    && mkdir -p /app/logs \
     && chown -R juflow:juflow /app
 
 USER juflow

@@ -10,10 +10,15 @@ Every log record produced along the path that pulls articles from RSSHub
 
 Paths are relative to the process working directory (``/app`` inside the
 Docker image, ``backend/`` in local dev) and can be overridden via ``LOG_DIR``.
+
+File writing is best-effort: if the log directory can't be created or the files
+can't be opened (e.g. a container bind mount the non-root user can't write),
+setup falls back to console-only so logging can never take the app down.
 """
 
 import logging
 import os
+import sys
 from logging.handlers import RotatingFileHandler
 
 from app.config import settings
@@ -29,15 +34,19 @@ _BACKUP_COUNT = 3
 _configured = False
 
 
+def _add_file_handler(root: logging.Logger, path: str, level: int, formatter: logging.Formatter) -> None:
+    handler = RotatingFileHandler(path, maxBytes=_MAX_BYTES, backupCount=_BACKUP_COUNT)
+    handler.setLevel(level)
+    handler.setFormatter(formatter)
+    root.addHandler(handler)
+
+
 def setup_logging() -> None:
     """Configure the root logger once. Safe to call from multiple entrypoints."""
     global _configured
     if _configured:
         return
     _configured = True
-
-    log_dir = settings.log_dir
-    os.makedirs(log_dir, exist_ok=True)
 
     formatter = logging.Formatter(_LOG_FORMAT, _DATE_FORMAT)
     root = logging.getLogger()
@@ -48,22 +57,17 @@ def setup_logging() -> None:
     console.setFormatter(formatter)
     root.addHandler(console)
 
-    # Unified error file: all ERROR+ from the pipeline, errors only.
-    error_handler = RotatingFileHandler(
-        os.path.join(log_dir, "error.log"),
-        maxBytes=_MAX_BYTES,
-        backupCount=_BACKUP_COUNT,
-    )
-    error_handler.setLevel(logging.ERROR)
-    error_handler.setFormatter(formatter)
-    root.addHandler(error_handler)
-
-    # General log: full INFO+ history for tracing a run.
-    app_handler = RotatingFileHandler(
-        os.path.join(log_dir, "app.log"),
-        maxBytes=_MAX_BYTES,
-        backupCount=_BACKUP_COUNT,
-    )
-    app_handler.setLevel(logging.INFO)
-    app_handler.setFormatter(formatter)
-    root.addHandler(app_handler)
+    try:
+        os.makedirs(settings.log_dir, exist_ok=True)
+        # Unified error file: all ERROR+ from the pipeline, errors only.
+        _add_file_handler(root, os.path.join(settings.log_dir, "error.log"), logging.ERROR, formatter)
+        # General log: full INFO+ history for tracing a run.
+        _add_file_handler(root, os.path.join(settings.log_dir, "app.log"), logging.INFO, formatter)
+    except OSError as e:
+        # PermissionError / read-only mount etc. — degrade to console only rather
+        # than crash startup (setup_logging runs at import time in the app).
+        print(
+            f"[logging] cannot write log files to '{settings.log_dir}': {e} "
+            f"— continuing with console output only",
+            file=sys.stderr,
+        )

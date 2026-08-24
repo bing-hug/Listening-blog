@@ -60,8 +60,10 @@ services:
         condition: service_started
     volumes:
       - plugins:/app/plugins
-      # Persist the unified log files (logs/error.log, logs/app.log) to the host.
-      - ./logs:/app/logs
+      # Named volume (not a bind mount) so the non-root juflow user can write.
+      # Initialized with the image's /app/logs ownership. Both backend and
+      # celery-worker share it, so all error logs stay in one file.
+      - logs:/app/logs
     restart: unless-stopped
 
   celery-worker:
@@ -75,9 +77,9 @@ services:
         condition: service_healthy
     volumes:
       - plugins:/app/plugins
-      # Same host log dir as the backend service so all error logs are unified
+      # Same named volume as the backend service so all error logs are unified
       # in one file even though the worker is a separate container.
-      - ./logs:/app/logs
+      - logs:/app/logs
     restart: unless-stopped
 
   celery-beat:
@@ -107,3 +109,4 @@ services:
 volumes:
   pgdata:
   plugins:
+  logs:
